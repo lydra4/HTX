@@ -1,5 +1,0 @@
-black==
-grandalf==
-pre-commit==
-pylint==
-ruff==
