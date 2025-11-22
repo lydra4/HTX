@@ -7,3 +7,6 @@ rich==14.2.0
 # Machine Learning
 transformers==4.57.1
 ultralytics==8.3.230
+
+# Database
+pysqlite3==0.5.4
