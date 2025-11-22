@@ -1,3 +1,5 @@
+multiprocessing: True
+
 video:
   video_model: yolov8x.pt
 
