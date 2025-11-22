@@ -1,4 +1,4 @@
-multiprocessing: True
+dir_path: "./data/01-raw"
 
 video:
   video_model: yolov8x.pt
