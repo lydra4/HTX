@@ -1,0 +1,12 @@
+sentence_transformer: BAAI/bge-small-en-v1.5
+
+database:
+  db_path: "./data/02-preprocessed/extraction.db"
+  create_table: |
+    CREATE TABLE IF NOT EXISTS embeddings (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              file_name TEXT NOT NULL,
+              modality TEXT CHECK(modality IN ('audio','video')),
+              vector BLOB NOT NULL,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
