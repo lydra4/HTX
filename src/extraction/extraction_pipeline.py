@@ -11,6 +11,8 @@ from tqdm import tqdm
 from transformers import pipeline
 from ultralytics.models import YOLO
 
+from utils.general_utils import init_db
+
 
 class ExtractionPipeline:
     def __init__(
@@ -27,19 +29,6 @@ class ExtractionPipeline:
 
         self.video_model = YOLO(model=self.cfg.video.video_model).to(self.device_video)
         self.audio_model = pipeline(device=self.device_audio, **self.cfg.audio)
-
-    def _init_db(
-        self,
-        db_path: str,
-        video_events: str,
-        audio_events: str,
-    ) -> None:
-        with sqlite3.connect(database=db_path) as conn:
-            conn = sqlite3.connect(database=db_path)
-            cursor = conn.cursor()
-            cursor.execute(video_events)
-            cursor.execute(audio_events)
-            conn.commit()
 
     def _get_video_list(
         self,
@@ -148,10 +137,12 @@ class ExtractionPipeline:
     def run(self) -> None:
         start_time = time.time()
 
-        self._init_db(
+        init_db(
             db_path=self.cfg.database.db_path,
-            video_events=self.cfg.database.video_events,
-            audio_events=self.cfg.database.audio_events,
+            sql_statements=[
+                self.cfg.database.video_events,
+                self.cfg.database.audio_events,
+            ],
         )
         video_paths = self._get_video_list(dir_path=self.cfg.dir_path)
         for video_path in tqdm(video_paths):
