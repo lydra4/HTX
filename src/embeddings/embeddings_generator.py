@@ -23,8 +23,8 @@ class EmbeddingsGenerator:
             model_name_or_path=self.cfg.sentence_transformer
         )
         init_db(
-            db_path=self.cfg.database.db_path,
-            sql_statements=[self.cfg.database.create_table],
+            db_path=self.cfg.database.embeddings_db_path,
+            sql_statements=[self.cfg.database.create_embeddings_table],
         )
 
     def _vector_to_blob(self, vector: np.ndarray) -> bytes:
@@ -43,39 +43,52 @@ class EmbeddingsGenerator:
 
         with sqlite3.connect(database=source_db_path) as read_conn:
             read_cursor = read_conn.cursor()
-            read_cursor.execute("SELECT file_name, object_name FROM video_events")
+            if modality == "video":
+                read_cursor.execute("SELECT file_name, object_name FROM video_events")
+            else:
+                read_cursor.execute("SELECT file_name, transcript FROM audio_events")
+
             rows = read_cursor.fetchall()
 
         with sqlite3.connect(database=embeddings_db_path) as write_conn:
             write_cursor = write_conn.cursor()
 
-            for file_name, object_name in tqdm(
-                rows,
-                leave=True,
+            pbar = tqdm(
+                total=len(rows),
+                desc=f"Embedding {modality}",
                 dynamic_ncols=True,
-            ):
-                vec = self.sentence_transformer.encode(object_name)
+                leave=True,
+            )
+
+            for file_name, object_name in rows:
+                vec = self.sentence_transformer.encode(
+                    object_name,
+                    show_progress_bar=False,
+                )
                 blob = self._vector_to_blob(vector=vec)
                 write_cursor.execute(
                     """
-                               INSERT INTO embeddings (modality, file_name, vector)
-                               VALUES (?, ?, ?)
-                               """,
+                    INSERT INTO embeddings (modality, file_name, vector)
+                    VALUES (?, ?, ?)
+                    """,
                     (modality, file_name, blob),
                 )
+                pbar.update(1)
+
+            pbar.close()
             write_conn.commit()
 
         self.logger.info(f"Embeddings completed for {modality}.")
 
     def generate_embeddings(self) -> None:
         self._generate_embeddings_mode(
-            source_db_path=self.cfg.database.db_path,
-            embeddings_db_path=self.cfg.embeddings_db_path,
+            source_db_path=self.cfg.database.source_db_path,
+            embeddings_db_path=self.cfg.database.embeddings_db_path,
             modality="video",
         )
         self._generate_embeddings_mode(
-            source_db_path=self.cfg.database.db_path,
-            embeddings_db_path=self.cfg.embeddings_db_path,
+            source_db_path=self.cfg.database.source_db_path,
+            embeddings_db_path=self.cfg.database.embeddings_db_path,
             modality="audio",
         )
 
