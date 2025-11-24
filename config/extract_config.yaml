@@ -1,11 +1,11 @@
 dir_path: "./data/01-raw"
 
 video:
-  video_model: yolov8x.pt
+  video_model: yolov8s.pt
 
 audio:
   task: "automatic-speech-recognition"
-  model: "openai/whisper-medium.en"
+  model: "openai/whisper-small.en"
 
 database:
   db_path: "./data/02-preprocessed/extraction.db"
