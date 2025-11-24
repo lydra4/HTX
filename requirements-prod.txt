@@ -5,9 +5,10 @@ python-json-logger==4.0.0
 rich==14.2.0
 
 # Machine Learning
+opencv-python-headless==4.12.0.88
+sentence-transformers==5.1.2
 transformers==4.57.1
 ultralytics==8.3.230
-opencv-python-headless==4.12.0.88
 
 # Database
 pysqlite3==0.5.4
