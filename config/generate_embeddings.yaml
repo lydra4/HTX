@@ -1,7 +1,8 @@
 sentence_transformer: BAAI/bge-small-en-v1.5
 
 database:
-  db_path: "./data/02-preprocessed/extraction.db"
+  source_db_path: "./data/02-preprocessed/extraction.db"
+  embeddings_db_path: "./data/03-processed/embeddings.db"
   create_table: |
     CREATE TABLE IF NOT EXISTS embeddings (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
