@@ -1,6 +1,7 @@
 import logging
 import os
 import sqlite3
+import time
 from typing import Any, List, Optional, Tuple
 
 import cv2
@@ -107,17 +108,29 @@ class ExtractionPipeline:
                 )
                 conn.commit()
 
+    def _extract_audio(self, video_path: str) -> str:
+        audio_path = video_path.replace(".mp4", ".wav")
+        cmd = (
+            f"ffmpeg -y -i '{video_path}' -vn "
+            f"-acodec pcm_s16le -ar 16000 -ac 1 '{audio_path}'"
+        )
+        os.system(cmd)
+        return audio_path
+
     def _process_audio(self, db_path: str, audio_path: str) -> None:
         audio_name = os.path.basename(audio_path)
 
         output: Any = self.audio_model(audio_path, return_timestamps=True)
 
-        if isinstance(output, list):
-            output = output[0]
-
-        segments = output.get("chunks") or output.get("segments") or []
+        segments = output.get("chunks", [])
         db_buffer = [
-            (audio_name, seg["text"], seg["start"], seg["end"]) for seg in segments
+            (
+                audio_name,
+                seg.get("text", ""),
+                *(seg.get("timestamp") or (None, None)),
+            )
+            for seg in segments
+            if seg.get("timestamp") is not None and seg["timestamp"][1] is not None
         ]
 
         if db_buffer:
@@ -133,6 +146,8 @@ class ExtractionPipeline:
                 conn.commit()
 
     def run(self) -> None:
+        start_time = time.time()
+
         self._init_db(
             db_path=self.cfg.database.db_path,
             video_events=self.cfg.database.video_events,
@@ -145,7 +160,12 @@ class ExtractionPipeline:
                 db_path=self.cfg.database.db_path,
                 video_path=video_path,
             )
+            audio_path = self._extract_audio(video_path=video_path)
             self._process_audio(
                 db_path=self.cfg.database.db_path,
-                audio_path=video_path,
+                audio_path=audio_path,
             )
+
+        elapsed = time.time() - start_time
+        minutes, seconds = divmod(elapsed, 60)
+        self.logger.info(f"Extraction took {int(minutes)}m {seconds:.2f}s.")
