@@ -33,12 +33,21 @@ class EmbeddingsGenerator:
     def _blob_to_vector(self, blob: bytes) -> np.ndarray:
         return np.frombuffer(buffer=blob, dtype="float32")
 
-    def _generate_embeddings_mode(self, db_path: str, modality: str) -> None:
+    def _generate_embeddings_mode(
+        self,
+        source_db_path: str,
+        embeddings_db_path: str,
+        modality: str,
+    ) -> None:
         self.logger.info(f"Generating embeddings for {modality}.")
-        with sqlite3.connect(database=db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT file_name, object_name FROM video_events")
-            rows = cursor.fetchall()
+
+        with sqlite3.connect(database=source_db_path) as read_conn:
+            read_cursor = read_conn.cursor()
+            read_cursor.execute("SELECT file_name, object_name FROM video_events")
+            rows = read_cursor.fetchall()
+
+        with sqlite3.connect(database=embeddings_db_path) as write_conn:
+            write_cursor = write_conn.cursor()
 
             for file_name, object_name in tqdm(
                 rows,
@@ -47,24 +56,26 @@ class EmbeddingsGenerator:
             ):
                 vec = self.sentence_transformer.encode(object_name)
                 blob = self._vector_to_blob(vector=vec)
-                cursor.execute(
+                write_cursor.execute(
                     """
                                INSERT INTO embeddings (modality, file_name, vector)
                                VALUES (?, ?, ?)
                                """,
                     (modality, file_name, blob),
                 )
-            conn.commit()
+            write_conn.commit()
 
         self.logger.info(f"Embeddings completed for {modality}.")
 
     def generate_embeddings(self) -> None:
         self._generate_embeddings_mode(
-            db_path=self.cfg.database.db_path,
+            source_db_path=self.cfg.database.db_path,
+            embeddings_db_path=self.cfg.embeddings_db_path,
             modality="video",
         )
         self._generate_embeddings_mode(
-            db_path=self.cfg.database.db_path,
+            source_db_path=self.cfg.database.db_path,
+            embeddings_db_path=self.cfg.embeddings_db_path,
             modality="audio",
         )
 
