@@ -1,0 +1,164 @@
+:root {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #0c2036;
+  background-color: #f5f7fb;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(8, 23, 53, 0.08);
+}
+
+.section-title {
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e6f0ff;
+  color: #1c4ed8;
+}
+
+button {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  background-color: #1c4ed8;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: #113aaf;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  background-color: #9fb5f5;
+  cursor: not-allowed;
+}
+
+input[type="file"],
+select,
+input[type="text"] {
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #d7deeb;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.video-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.keyframes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.keyframes img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(12, 32, 54, 0.08);
+}
+
+.objects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.objects span {
+  background: #0d9488;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.transcription-item {
+  border: 1px solid rgba(12, 32, 54, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.search-results small {
+  color: #6b7280;
+}
+
+.pill-toggle {
+  display: inline-flex;
+  border-radius: 999px;
+  border: 1px solid #d7deeb;
+  overflow: hidden;
+}
+
+.pill-toggle button {
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  color: #0c2036;
+}
+
+.pill-toggle button.active {
+  background: #1c4ed8;
+  color: #fff;
+}
+

@@ -1,6 +1,8 @@
+import os
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from omegaconf import DictConfig, OmegaConf
 
 from backend.database import init_database
@@ -24,6 +26,13 @@ def create_app(cfg: DictConfig, project_root: str | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.video_processor = VideoProcessor(settings=settings)
     app.state.audio_processor = AudioProcessor(settings=settings)
+
+    if os.path.isdir(settings.storage.processed_data_dir):
+        app.mount(
+            "/media",
+            StaticFiles(directory=settings.storage.processed_data_dir),
+            name="media",
+        )
 
     app.include_router(health.router, tags=["health"])
     app.include_router(videos.router, tags=["videos"])

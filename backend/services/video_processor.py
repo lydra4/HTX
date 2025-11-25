@@ -59,19 +59,25 @@ class VideoProcessor:
                 frame_path = os.path.join(self.settings.storage.key_frame_dir, frame_name)
                 os.makedirs(os.path.dirname(frame_path), exist_ok=True)
                 cv2.imwrite(frame_path, frame)
-                saved_frames.append(frame_path)
+                rel_path = os.path.relpath(
+                    frame_path, start=self.settings.storage.processed_data_dir
+                ).replace("\\", "/")
+                saved_frames.append(rel_path)
             success, frame = capture.read()
             frame_idx += 1
 
         capture.release()
-        if not saved_frames:
-            saved_frames.append(video_path)
         return saved_frames
 
     def _detect_objects(self, key_frames: List[str]) -> List[str]:
         objects: set[str] = set()
         for frame_path in key_frames:
-            frame = cv2.imread(frame_path)
+            full_path = os.path.normpath(
+                frame_path
+                if os.path.isabs(frame_path)
+                else os.path.join(self.settings.storage.processed_data_dir, frame_path)
+            )
+            frame = cv2.imread(full_path)
             if frame is None:
                 continue
             brightness = frame.mean()
