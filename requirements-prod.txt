@@ -12,3 +12,6 @@ ultralytics==8.3.230
 
 # Database
 pysqlite3==0.5.4
+
+# Backend
+fastapi==0.122.0
