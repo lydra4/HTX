@@ -5,10 +5,12 @@ import time
 from typing import Any, List, Optional, Tuple
 
 import cv2
+import numpy as np
+import soundfile as sf
 import torch
 from omegaconf import DictConfig
 from tqdm import tqdm
-from transformers import pipeline
+from transformers import WhisperForConditionalGeneration, WhisperProcessor
 from ultralytics.models import YOLO
 
 from utils.general_utils import init_db
@@ -28,7 +30,16 @@ class ExtractionPipeline:
         self.device_audio = 0 if torch.cuda.is_available() else -1
 
         self.video_model = YOLO(model=self.cfg.video.video_model).to(self.device_video)
-        self.audio_model = pipeline(device=self.device_audio, **self.cfg.audio)
+
+        self.audio_processor = WhisperProcessor.from_pretrained(
+            pretrained_model_name_or_path=self.cfg.audio.model
+        )
+        self.audio_model = WhisperForConditionalGeneration.from_pretrained(
+            pretrained_model_name_or_path=self.cfg.audio.model
+        )
+        self.forced_decoder_ids = self.audio_processor.get_decoder_prompt_ids(
+            language="en", task=self.cfg.audio.task
+        )
 
     def _get_video_list(
         self,
@@ -109,30 +120,41 @@ class ExtractionPipeline:
     def _process_audio(self, db_path: str, audio_path: str) -> None:
         audio_name = os.path.basename(audio_path)
 
-        output: Any = self.audio_model(audio_path, return_timestamps=True)
+        audio, sr = sf.read(file=audio_path)
+        inputs = self.audio_processor(audio, sampling_rate=sr, return_tensors="pt")
 
-        segments = output.get("chunks", [])
-        db_buffer = [
-            (
-                audio_name,
-                seg.get("text", ""),
-                *(seg.get("timestamp") or (None, None)),
+        outputs: Any = self.audio_model.generate(
+            input_features=inputs.input_features,
+            return_dict_in_generate=True,
+            output_scores=True,
+            forced_decoder_ids=self.forced_decoder_ids,
+        )
+
+        text = self.audio_processor.batch_decode(
+            outputs.sequences, skip_special_tokens=True
+        )[0]
+
+        logprobs = []
+        for i, logits in enumerate(outputs.scores):
+            token_id = outputs.sequences[0][i + 1]
+            logprob = logits[0, token_id].item()
+            logprobs.append(logprob)
+
+        probs = np.exp(logprobs)
+        confidence = float(np.mean(probs))
+
+        db_buffer = [(audio_name, text, confidence)]
+
+        with sqlite3.connect(database=db_path) as conn:
+            cursor = conn.cursor()
+            cursor.executemany(
+                """
+                INSERT INTO audio_events (file_name, transcript, confidence)
+                VALUES (?, ?, ?)
+                """,
+                db_buffer,
             )
-            for seg in segments
-            if seg.get("timestamp") is not None and seg["timestamp"][1] is not None
-        ]
-
-        if db_buffer:
-            with sqlite3.connect(database=db_path) as conn:
-                cursor = conn.cursor()
-                cursor.executemany(
-                    """
-                    INSERT INTO audio_events (file_name, transcript, start, end)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    db_buffer,
-                )
-                conn.commit()
+            conn.commit()
 
     def run(self) -> None:
         start_time = time.time()
