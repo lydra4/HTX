@@ -4,7 +4,7 @@ video:
   video_model: yolov8s.pt
 
 audio:
-  task: "automatic-speech-recognition"
+  task: "transcribe"
   model: "openai/whisper-small.en"
 
 database:
@@ -23,7 +23,6 @@ database:
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         file_name TEXT NOT NULL,
         transcript TEXT NOT NULL,
-        start REAL NOT NULL,
-        end REAL NOT NULL,
+        confidence REAL,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
