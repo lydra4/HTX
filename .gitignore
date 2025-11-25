@@ -26,6 +26,9 @@
 ### Common files ###
 ####################
 
+# Ignore all database files
+**/*.db
+
 # Obsidian config directory
 **/.obsidian/
 
