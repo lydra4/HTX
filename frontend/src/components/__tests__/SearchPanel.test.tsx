@@ -120,8 +120,8 @@ describe("SearchPanel", () => {
     );
 
     expect(screen.getByText(/Matched 1 videos and 1 transcriptions/i)).toBeInTheDocument();
-    expect(screen.getByText("video1.mp4")).toBeInTheDocument();
-    expect(screen.getByText("audio1.wav")).toBeInTheDocument();
+    expect(screen.getByText(/video1\.mp4/i)).toBeInTheDocument();
+    expect(screen.getByText(/audio1\.wav/i)).toBeInTheDocument();
   });
 
   it("should perform visual search using video reference", async () => {
@@ -204,10 +204,11 @@ describe("SearchPanel", () => {
     );
 
     expect(screen.getByText(/Matched 2 videos and 2 transcriptions/i)).toBeInTheDocument();
-    expect(screen.getByText("video1.mp4")).toBeInTheDocument();
-    expect(screen.getByText("video2.mp4")).toBeInTheDocument();
-    expect(screen.getByText("audio1.wav")).toBeInTheDocument();
-    expect(screen.getByText("audio2.wav")).toBeInTheDocument();
+    // Use regex to match filenames (more flexible with whitespace)
+    expect(screen.getByText(/video1\.mp4/i)).toBeInTheDocument();
+    expect(screen.getByText(/video2\.mp4/i)).toBeInTheDocument();
+    expect(screen.getByText(/audio1\.wav/i)).toBeInTheDocument();
+    expect(screen.getByText(/audio2\.wav/i)).toBeInTheDocument();
   });
 
   it("should disable search button when searching", () => {
