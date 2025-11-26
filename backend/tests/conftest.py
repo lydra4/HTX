@@ -14,7 +14,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.app import create_app
-from backend.database import Base
+from backend.models import Base
 from backend.settings import AppSettings, build_settings
 
 
