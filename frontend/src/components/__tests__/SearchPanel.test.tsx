@@ -126,7 +126,7 @@ describe("SearchPanel", () => {
 
   it("should perform visual search using video reference", async () => {
     const user = userEvent.setup();
-    render(
+    const { container } = render(
       <SearchPanel
         onTextSearch={mockOnTextSearch}
         onVisualSearch={mockOnVisualSearch}
@@ -139,7 +139,12 @@ describe("SearchPanel", () => {
       />
     );
 
-    const visualSelect = screen.getByText(/Visual Similarity/i).parentElement?.querySelector("select");
+    // Find the visual similarity section and get its select
+    const visualSection = screen.getByText("Visual Similarity").closest("div");
+    expect(visualSection).toBeTruthy();
+    const visualSelect = visualSection?.querySelector("select");
+    
+    expect(visualSelect).toBeTruthy();
     if (visualSelect) {
       await user.selectOptions(visualSelect, "1");
     }
@@ -164,7 +169,12 @@ describe("SearchPanel", () => {
       />
     );
 
-    const audioSelect = screen.getByText(/Audio Similarity/i).parentElement?.querySelector("select");
+    // Find the audio similarity section and get its select
+    const audioSection = screen.getByText("Audio Similarity").closest("div");
+    expect(audioSection).toBeTruthy();
+    const audioSelect = audioSection?.querySelector("select");
+    
+    expect(audioSelect).toBeTruthy();
     if (audioSelect) {
       await user.selectOptions(audioSelect, "1");
     }
